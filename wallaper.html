@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallpaper Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button, input[type="file"] {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: 0.3s;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .wallpaper-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.3s;
+        }
+        
+        .wallpaper-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .wallpaper-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .actions {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            justify-content: space-around;
+        }
+        
+        .actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+        
+        .download-btn {
+            background: #28a745;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Wallpaper Collection</h1>
+            <p>Manage your personal wallpaper library</p>
+        </header>
+        
+        <div class="controls">
+            <button onclick="document.getElementById('fileInput').click()">+ Upload Wallpaper</button>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+        
+        <div class="gallery" id="gallery">
+            <div class="empty-message">No wallpapers yet. Upload one to get started!</div>
+        </div>
+    </div>
+
+    <script>
+        const gallery = document.getElementById('gallery');
+        const fileInput = document.getElementById('fileInput');
+        
+        // Load wallpapers from localStorage
+        function loadWallpapers() {
+            const wallpapers = JSON.parse(localStorage.getItem('wallpapers')) || [];
+            gallery.innerHTML = '';
+            
+            if (wallpapers.length === 0) {
+                gallery.innerHTML = '<div class="empty-message">No wallpapers yet. Upload one to get started!</div>';
+                return;
+            }
+            
+            wallpapers.forEach((wallpaper, index) => {
+                const item = document.createElement('div');
+                item.className = 'wallpaper-item';
+                item.innerHTML = `
+                    <img src="${wallpaper}" alt="Wallpaper">
+                    <div class="actions">
+                        <button class="download-btn" onclick="downloadWallpaper('${wallpaper}', ${index})">Download</button>
+                        <button class="delete-btn" onclick="deleteWallpaper(${index})">Delete</button>
+                    </div>
+                `;
+                gallery.appendChild(item);
+            });
+        }
+        
+        // Upload wallpapers
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            const wallpapers = JSON.parse(localStorage.getItem('wallpapers')) || [];
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    wallpapers.push(event.target.result);
+                    localStorage.setItem('wallpapers', JSON.stringify(wallpapers));
+                    loadWallpapers();
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            fileInput.value = '';
+        });
+        
+        // Download wallpaper
+        function downloadWallpaper(imageData, index) {
+            const link = document.createElement('a');
+            link.href = imageData;
+            link.download = `wallpaper-${index}.png`;
+            link.click();
+        }
+        
+        // Delete wallpaper
+        function deleteWallpaper(index) {
+            if (confirm('Delete this wallpaper?')) {
+                const wallpapers = JSON.parse(localStorage.getItem('wallpapers')) || [];
+                wallpapers.splice(index, 1);
+                localStorage.setItem('wallpapers', JSON.stringify(wallpapers));
+                loadWallpapers();
+            }
+        }
+        
+        // Initial load
+        loadWallpapers();
+    </script>
+</body>
+</html>
